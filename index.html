@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#06000f">
+<title>dvdr6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #06000f;
+  --purple: #9b30ff;
+  --purple-dim: rgba(155,48,255,0.15);
+  --white: #f0eaff;
+  --muted: #6b5f7a;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  font-family: 'Space Mono', monospace;
+  overflow: hidden;
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb-1 { width: 500px; height: 500px; top: -150px; left: -150px; background: rgba(120,20,255,0.12); }
+.orb-2 { width: 400px; height: 400px; bottom: -100px; right: -100px; background: rgba(80,0,200,0.1); }
+
+.stage {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.sig {
+  font-family: 'Syne', sans-serif;
+  font-weight: 900;
+  font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+  letter-spacing: 6px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: clamp(36px, 8vh, 64px);
+  animation: fadeUp 0.8s ease both;
+}
+
+.cards {
+  display: flex;
+  gap: clamp(16px, 4vw, 32px);
+  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  position: relative;
+  width: clamp(160px, 42vw, 260px);
+  aspect-ratio: 3/4;
+  border-radius: 20px;
+  border: 1px solid rgba(155,48,255,0.18);
+  background: rgba(255,255,255,0.025);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(.22,.68,0,1.2), border-color 0.3s, box-shadow 0.3s;
+  animation: fadeUp 0.8s ease both;
+}
+
+.card:nth-child(2) { animation-delay: 0.1s; }
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(155,48,255,0.18) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.025);
+  border-color: rgba(155,48,255,0.5);
+  box-shadow: 0 20px 60px rgba(100,0,255,0.2), 0 0 0 1px rgba(155,48,255,0.1);
+}
+
+.card:hover::before { opacity: 1; }
+
+.card-glyph {
+  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  margin-bottom: 22px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.35s cubic-bezier(.22,.68,0,1.2);
+}
+
+.card:hover .card-glyph { transform: scale(1.15); }
+
+.card-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1rem, 3.5vw, 1.35rem);
+  letter-spacing: 2px;
+  color: var(--white);
+  position: relative;
+  z-index: 1;
+  margin-bottom: 10px;
+}
+
+.card-sub {
+  font-size: clamp(0.6rem, 1.8vw, 0.72rem);
+  color: var(--muted);
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0 16px;
+  line-height: 1.6;
+}
+
+.card-arrow {
+  position: absolute;
+  bottom: 22px;
+  right: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(155,48,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 1;
+}
+
+.card:hover .card-arrow {
+  background: var(--purple);
+  border-color: var(--purple);
+  transform: translate(2px, -2px);
+}
+
+.card-arrow svg { width: 14px; height: 14px; fill: var(--white); }
+
+.divider {
+  width: 1px;
+  height: clamp(80px, 20vw, 140px);
+  background: linear-gradient(180deg, transparent, rgba(155,48,255,0.3), transparent);
+  animation: fadeUp 0.8s ease both 0.05s;
+  align-self: center;
+}
+
+@media (max-width: 500px) {
+  .divider { display: none; }
+  .cards { flex-direction: column; align-items: center; }
+  .card { width: clamp(200px, 80vw, 300px); aspect-ratio: 5/3; }
+}
+
+.footer-sig {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: rgba(107,95,122,0.5);
+  letter-spacing: 3px;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="stage">
+  <p class="sig">dvdr6 &nbsp;/&nbsp; wybierz projekt</p>
+
+  <div class="cards">
+    <a href="webdev.html" class="card">
+      <div class="card-glyph">⟨/⟩</div>
+      <div class="card-name">webDEV</div>
+      <div class="card-sub">portfolio & projekty webowe</div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+      </div>
+    </a>
+
+    <div class="divider"></div>
+
+    <a href="nobywatel.html" class="card">
+      <div class="card-glyph">🪪</div>
+      <div class="card-name">nObywatel</div>
+      <div class="card-sub">generator mDowód do filmów i castingów</div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+      </div>
+    </a>
+  </div>
+</div>
+
+<p class="footer-sig">dvdr6.github.io</p>
+</body>
+</html>
